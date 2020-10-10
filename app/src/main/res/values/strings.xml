@@ -2,4 +2,5 @@
     <string name="app_name">启航书屋</string>
     <string name="countdown">秒,点击跳过</string>
     <string name="book_list_name">书籍列表</string>
+    <string name="button_download">点击下载</string>
 </resources>

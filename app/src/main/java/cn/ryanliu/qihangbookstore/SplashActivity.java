@@ -23,7 +23,7 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-         mTextView  = findViewById(R.id.time_text_view);
+        mTextView = findViewById(R.id.time_text_view);
         mLinearLayout = findViewById(R.id.time_linearlayout);
         final MyHandler handler = new MyHandler(this);
 
@@ -47,37 +47,38 @@ public class SplashActivity extends AppCompatActivity {
      * 倒计时
      */
     //这样写handler可以防止内存泄露,因为使用handler会持有对象(activity引用) activity销毁时候被他持有,所以销毁不掉
-     public static class MyHandler extends Handler{
+    public static class MyHandler extends Handler {
         //弱引用
-             public final WeakReference<SplashActivity> mWeakReference;
-             public  MyHandler(SplashActivity activity){
-                 mWeakReference = new WeakReference<>(activity);
-             }
+        public final WeakReference<SplashActivity> mWeakReference;
 
-             @Override
-             public void handleMessage(Message msg) {
-                 super.handleMessage(msg);
-                 SplashActivity activity = mWeakReference.get();
-                 if (msg.what == CODE){
-                    if (activity != null){
-                        //设置TextView,更新UI
-                        int time =   msg.arg1;
-                        activity.mTextView.setText(time/INTERVAL_TIME + "");
-                        //发送倒计时
-                        Message message = Message.obtain();
-                        message.what = CODE;
-                        message.arg1 = time - INTERVAL_TIME;
+        public MyHandler(SplashActivity activity) {
+            mWeakReference = new WeakReference<>(activity);
+        }
 
-                        if (time > 0){
-                            sendMessageDelayed(message , INTERVAL_TIME);
-                        }else {
-                            //TODO 跳到下一个页面
-                            MainActivity.statr(activity);
-                            activity.finish();
-                        }
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            SplashActivity activity = mWeakReference.get();
+            if (msg.what == CODE) {
+                if (activity != null) {
+                    //设置TextView,更新UI
+                    int time = msg.arg1;
+                    activity.mTextView.setText(time / INTERVAL_TIME + "");
+                    //发送倒计时
+                    Message message = Message.obtain();
+                    message.what = CODE;
+                    message.arg1 = time - INTERVAL_TIME;
 
+                    if (time > 0) {
+                        sendMessageDelayed(message, INTERVAL_TIME);
+                    } else {
+                        //TODO 跳到下一个页面
+                        MainActivity.statr(activity);
+                        activity.finish();
                     }
-                 }
-             }
-         }
+
+                }
+            }
+        }
+    }
 }
