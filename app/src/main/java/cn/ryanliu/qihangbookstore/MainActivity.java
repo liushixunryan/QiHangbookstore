@@ -148,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
                     //判断文件是否存在
                     if (file.exists()) {
                         //TODO:打开书籍
-                        finalViewHolder.mButton.setText("点击打开");
+                        BookActivity.statr(MainActivity.this,path);
 
                     } else {
                         //不存在就创建
