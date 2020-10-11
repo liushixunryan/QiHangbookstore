@@ -2,6 +2,7 @@ package cn.ryanliu.qihangbookstore;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -19,8 +20,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.FileAsyncHttpResponseHandler;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +36,7 @@ import java.util.List;
 import cn.ryanliu.qihangbookstore.bean.BookListResult;
 import cn.ryanliu.qihangbookstore.util.HttpUtilGet;
 import cn.ryanliu.qihangbookstore.util.Url;
+import cz.msebera.android.httpclient.Header;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
@@ -40,19 +49,21 @@ public class MainActivity extends AppCompatActivity {
     private ListView mListView;
     private Handler mHandler;
     private RequestBody requestBody;
+    private AsyncHttpClient mClient = new AsyncHttpClient();
     //初始化,防止使用时候空指针
     private List<BookListResult.BookData> mBookData = new ArrayList<>();
-    private  MediaType JSON= MediaType.parse("application/json; charset=utf-8");
+    private MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
         NetworkConnections();
-        mHandler = new Handler(){
+        mHandler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
-                if (msg.what == 1){
+                if (msg.what == 1) {
                     mListView.setAdapter(new BookListAdapter());
                 }
             }
@@ -70,7 +81,6 @@ public class MainActivity extends AppCompatActivity {
             public void onFailure(Call call, IOException e) {
                 //异常处理
                 Looper.prepare();
-                Log.i("it520", e.toString());
                 Toast.makeText(MainActivity.this, "网络未连接或网络不稳定", Toast.LENGTH_SHORT).show();
                 Looper.loop();
             }
@@ -79,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Call call, Response response) throws IOException {
                 final String result = response.body().string();
                 Gson gson = new Gson();
-                BookListResult bookListResult = gson.fromJson(result,BookListResult.class);
+                BookListResult bookListResult = gson.fromJson(result, BookListResult.class);
                 mBookData = bookListResult.getData();
                 mHandler.sendEmptyMessage(1);
             }
@@ -110,32 +120,74 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            BookListResult.BookData bookData = mBookData.get(position);
+            final BookListResult.BookData bookData = mBookData.get(position);
             ViewHolder viewHolder = new ViewHolder();
-            if (convertView == null){
+            if (convertView == null) {
                 //如果为空就新建
-                convertView = getLayoutInflater().inflate(R.layout.item_book_list_view,null);
+                convertView = getLayoutInflater().inflate(R.layout.item_book_list_view, null);
                 viewHolder.mNameTextView = convertView.findViewById(R.id.name_text_view);
                 viewHolder.mButton = convertView.findViewById(R.id.book_button);
                 viewHolder.mImageView = convertView.findViewById(R.id.icon_image_view);
                 convertView.setTag(viewHolder);
-            }else {
+            } else {
                 //如果不为空直接拿他缓存
                 viewHolder = (ViewHolder) convertView.getTag();
             }
-             viewHolder.mNameTextView.setText(bookData.getBookname());
+            viewHolder.mNameTextView.setText(bookData.getBookname());
+            //路径
+            final String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/QiHangBookStore/" + bookData.getBookfile() + ".txt";
+            //文件
+            final File file = new File(path);
+            //如果文件存在就是点击打开,不是就是点击下载
+            viewHolder.mButton.setText(file.exists()?"点击打开":"点击下载");
+            final ViewHolder finalViewHolder = viewHolder;
             viewHolder.mButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     //下载的功能
+                    //判断文件是否存在
+                    if (file.exists()) {
+                        //TODO:打开书籍
+                        finalViewHolder.mButton.setText("点击打开");
+
+                    } else {
+                        //不存在就创建
+                        //默认使用baigzip压缩，导致无法提前获取下载文件的总du大小zhi，不让它压缩即可
+                        mClient.addHeader("Accept-Encoding", "identity");
+                        mClient.get(bookData.getBookfile(), new FileAsyncHttpResponseHandler(file) {
+                            @Override
+                            public void onFailure(int statusCode, Header[] headers, Throwable throwable, File file) {
+                                //下载失败
+                                Log.i("it520", "onFailure: " + throwable);
+                                finalViewHolder.mButton.setText("下载失败");
+                            }
+
+                            @Override
+                            public void onSuccess(int statusCode, Header[] headers, File file) {
+                                //下载成功
+                                finalViewHolder.mButton.setText("点击打开");
+                            }
+
+                            @Override
+                            public void onProgress(long bytesWritten, long totalSize) {
+                                //进度条
+                                super.onProgress(bytesWritten, totalSize);
+                                finalViewHolder.mButton.setText(bytesWritten * 100 / totalSize + "%");
+                            }
+                        });
+                    }
+
                 }
             });
             return convertView;
         }
-        class ViewHolder{
+
+        class ViewHolder {
             public TextView mNameTextView;
             public Button mButton;
             public ImageView mImageView;
         }
     }
+
+
 }

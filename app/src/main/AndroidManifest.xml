@@ -3,10 +3,10 @@
     package="cn.ryanliu.qihangbookstore">
     <!--网络请求-->
     <uses-permission android:name="android.permission.INTERNET"/>
-    <!--写入数据请求-->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <!--读取数据请求-->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <!--外部存储的写权限-->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!--外部存储的读权限-->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
