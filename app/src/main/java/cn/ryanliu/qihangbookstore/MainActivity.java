@@ -46,6 +46,7 @@ import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static final String TAG = "it520";
     private ListView mListView;
     private Handler mHandler;
     private RequestBody requestBody;
@@ -81,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
             public void onFailure(Call call, IOException e) {
                 //异常处理
                 Looper.prepare();
+                Log.i(TAG, "onFailure: " + e);
                 Toast.makeText(MainActivity.this, "网络未连接或网络不稳定", Toast.LENGTH_SHORT).show();
                 Looper.loop();
             }

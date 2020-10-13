@@ -530,7 +530,7 @@ public class BookPageView extends RelativeLayout {
         if(Build.VERSION.SDK_INT >= 28){
             canvas.clipPath(mNextPagePath);
         }else {
-            canvas.clipPath(mNextPagePath, Region.Op.XOR);
+            canvas.clipPath(mNextPagePath, Region.Op.INTERSECT);
         }
 //        canvas.clipPath(mNextPagePath, Region.Op.INTERSECT);
         int leftX;
@@ -573,7 +573,7 @@ public class BookPageView extends RelativeLayout {
         if(Build.VERSION.SDK_INT >= 28){
             canvas.clipPath(mNextPagePath);
         }else {
-            canvas.clipPath(mNextPagePath, Region.Op.XOR);
+            canvas.clipPath(mNextPagePath, Region.Op.INTERSECT);
         }
 //        canvas.clipPath(mNextPagePath, Region.Op.INTERSECT);
         if (mIsRTAndLB) {
