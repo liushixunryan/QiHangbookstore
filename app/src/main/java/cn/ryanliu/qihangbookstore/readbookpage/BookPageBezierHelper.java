@@ -466,6 +466,8 @@ public class BookPageBezierHelper {
     public interface OnProgressChangedListener {
         /**
          * 设置进度方法
+         * currentLength 当前长度
+         * totalLength 总的长度
          */
         void setProgress(int currentLength, int totalLength);
     }

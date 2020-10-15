@@ -154,7 +154,7 @@ public class BookPageView extends RelativeLayout {
                         && event.getX() > mViewWidth / 2 - 100;
                 boolean isCenterOfY = event.getY() < mViewHeight / 2 + 150
                         && event.getY() > mViewHeight / 2 - 150;
-
+                //点击中间部分进行设置
                 if(isCenterOfX && isCenterOfY){
                     if(event.getAction() == MotionEvent.ACTION_UP){
                         Log.i(TAG, "onTouch: Center");
@@ -729,6 +729,7 @@ public class BookPageView extends RelativeLayout {
         mOnUserNeedSettingListener = onUserNeedSettingListener;
     }
 
+    //当用户需要设置的时候
     public interface OnUserNeedSettingListener{
         void onUserNeedSetting();
     }

@@ -18,6 +18,26 @@
             android:gravity="center_horizontal"
             android:textSize="20sp"
             />
+
+        <RelativeLayout
+            android:id="@+id/setting_view"
+            android:layout_alignParentBottom="true"
+            android:layout_width="match_parent"
+            android:visibility="gone"
+            android:layout_marginBottom="50dp"
+            android:background="@color/setting_gray_bg_color"
+            android:layout_height="wrap_content">
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/setting_recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="50dp">
+
+
+            </android.support.v7.widget.RecyclerView>
+
+
+        </RelativeLayout>
         
     </cn.ryanliu.qihangbookstore.readbookpage.BookPageView>
 
