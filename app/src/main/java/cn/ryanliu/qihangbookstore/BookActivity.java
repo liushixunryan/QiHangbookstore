@@ -24,11 +24,13 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import org.w3c.dom.Text;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -54,10 +56,15 @@ public class BookActivity extends AppCompatActivity {
     private int mHeight;
     private int mLastLength;
     private TextToSpeech mTts;
+    private SeekBar mSeekBar;
+    private int mTotalLength;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_book);
+        //实例化
+        initView();
         //全屏操作(沉浸式状态)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             //如果>=4.4才支持沉浸式
@@ -66,15 +73,16 @@ public class BookActivity extends AppCompatActivity {
             //显示下面的导航键
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
         }
-        setContentView(R.layout.activity_book);
         // 判断是否存在
         if (getIntent() != null){
             mFilePath = getIntent().getStringExtra(FILE_PATH);
+            if (!TextUtils.isEmpty(mFilePath)){
+                mTotalLength = (int) new File(mFilePath).length();
+            }
         }else {
             Toast.makeText(this, "未找到这本书", Toast.LENGTH_SHORT).show();
         }
-        //实例化
-        initView();
+
         //设置贝塞尔曲线翻页效果
         setBookHelper();
 
@@ -106,6 +114,7 @@ public class BookActivity extends AppCompatActivity {
                 mHelper.openBook(mFilePath);
                 //画这本书
                 mHelper.draw(new Canvas(mCurrentPageBitmap));
+
                 mBookPageView.invalidate();
                 //设置背景
                 mHelper.setBackground(this,backgroundID);
@@ -139,6 +148,25 @@ public class BookActivity extends AppCompatActivity {
                 mSettingRecyclerView.setLayoutManager(layoutManager);
                 mSettingRecyclerView.setAdapter(new HorizontalAdapter(this,settingList));
 
+                mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                        //拖动就回调
+                    }
+
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {
+                       //开始拖动
+                        openBookByProgress(R.drawable.book_background,seekBar.getProgress()*mTotalLength/100);
+                    }
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {
+                        //停止拖动
+                        openBookByProgress(R.drawable.book_background,seekBar.getProgress()*mTotalLength/100);
+                    }
+                });
+
             } catch (IOException e) {
                 e.printStackTrace();
                 Toast.makeText(this, "未找到这本书", Toast.LENGTH_SHORT).show();
@@ -153,6 +181,7 @@ public class BookActivity extends AppCompatActivity {
         mBookPageView = findViewById(R.id.book_page_view);
         mProgressTextView = findViewById(R.id.progress_text_view);
         mSettingView = findViewById(R.id.setting_view);
+        mSeekBar = findViewById(R.id.seekBar);
     }
 
     //页面跳转封装方法
@@ -214,7 +243,7 @@ public class BookActivity extends AppCompatActivity {
                             break;
                         case 2:
                             //设置背景
-                            openBookByProgress(R.drawable.book_background1,mLastLength);
+                            openBookByProgress(R.drawable.book_background1,mCurrentLength);
                             break;
                         case 3:
                             //语音朗读
@@ -253,6 +282,7 @@ public class BookActivity extends AppCompatActivity {
                             break;
                         case 4:
                             //跳转进度
+                            mSeekBar.setVisibility(View.VISIBLE);
 
                             break;
                     }
