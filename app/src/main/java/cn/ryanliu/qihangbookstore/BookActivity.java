@@ -7,7 +7,9 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Build;
+import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -15,6 +17,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,9 +27,13 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.w3c.dom.Text;
+
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import cn.ryanliu.qihangbookstore.readbookpage.BookPageBezierHelper;
 import cn.ryanliu.qihangbookstore.readbookpage.BookPageView;
@@ -45,6 +52,8 @@ public class BookActivity extends AppCompatActivity {
     private String mFilePath;
     private int mWidth;
     private int mHeight;
+    private int mLastLength;
+    private TextToSpeech mTts;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,10 +86,10 @@ public class BookActivity extends AppCompatActivity {
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         mWidth = displayMetrics.widthPixels;
         mHeight = displayMetrics.heightPixels;
-        openBookByProgress(0);
+        openBookByProgress(R.drawable.book_background,0);
     }
 
-    private void openBookByProgress(int progress) {
+    private void openBookByProgress(int backgroundID,int progress) {
         //设置贝塞尔曲线翻页
         mHelper = new BookPageBezierHelper(mWidth, mHeight,progress);
         mBookPageView.setBookPageBezierHelper(mHelper);
@@ -99,7 +108,7 @@ public class BookActivity extends AppCompatActivity {
                 mHelper.draw(new Canvas(mCurrentPageBitmap));
                 mBookPageView.invalidate();
                 //设置背景
-                mHelper.setBackground(this,R.drawable.background);
+                mHelper.setBackground(this,backgroundID);
                 //设置进度
                 mHelper.setOnProgressChangedListener(new BookPageBezierHelper.OnProgressChangedListener() {
                     @Override
@@ -200,14 +209,51 @@ public class BookActivity extends AppCompatActivity {
                              * 1.读取进度
                              * 2.跳转到进度
                              */
-                            int lastLength = sharedPreferences.getInt(mBookmark,0);
-                            openBookByProgress(lastLength);
+                            mLastLength = sharedPreferences.getInt(mBookmark,0);
+                            openBookByProgress(R.drawable.book_background, mLastLength);
                             break;
                         case 2:
+                            //设置背景
+                            openBookByProgress(R.drawable.book_background1,mLastLength);
                             break;
                         case 3:
+                            //语音朗读
+                            if(mTts == null){
+                                mTts = new TextToSpeech(mContext, new TextToSpeech.OnInitListener() {
+                                    @Override
+                                    public void onInit(int status) {
+                                        if (status == TextToSpeech.SUCCESS){
+                                            //设置语言
+                                            int result = mTts.setLanguage(Locale.CHINA);
+                                                //如果不支持,或者没有这个语言
+                                            if (result == TextToSpeech.LANG_MISSING_DATA  || result == TextToSpeech.LANG_NOT_SUPPORTED){
+                                                Log.i("it520", "onInit: 您可以去下载一个引擎");
+                                                Uri uri = Uri.parse("http://acj2.pc6.com/pc6_soure/2017-6/com.iflytek.vflynote_208.apk");
+                                                Intent  intent = new Intent(Intent.ACTION_VIEW,uri);
+                                                startActivity(intent);
+                                            }else {
+                                                Log.i("it520", "onInit: success ");
+                                                //转文字
+                                                mTts.speak(mHelper.getCurrentPageContent(),TextToSpeech.QUEUE_FLUSH,null);
+                                            }
+                                        }else {
+                                            Log.i("it520", "onInit: error");
+                                        }
+                                    }
+                                });
+                            }else {
+                                //如果在朗读就停止
+                                if (mTts != null){
+                                    mTts.stop();
+                                }else {
+                                    //如果不是在朗读
+                                    mTts.speak(mHelper.getCurrentPageContent(),TextToSpeech.QUEUE_FLUSH,null);
+                                }
+                            }
                             break;
                         case 4:
+                            //跳转进度
+
                             break;
                     }
                 }
@@ -224,6 +270,14 @@ public class BookActivity extends AppCompatActivity {
                 super(itemView);
                 mTextView = itemView;
             }
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mTts != null){
+            mTts.shutdown();
         }
     }
 }
