@@ -431,7 +431,12 @@ public class BookPageView extends RelativeLayout {
         }
         canvas.save();
         canvas.clipPath(mCurrentPagePath);
-        canvas.clipPath(mNextPagePath, Region.Op.INTERSECT);
+        if(Build.VERSION.SDK_INT >= 28){
+            canvas.clipPath(mNextPagePath);
+        }else {
+            canvas.clipPath(mNextPagePath, Region.Op.INTERSECT);
+        }
+//        canvas.clipPath(mNextPagePath, Region.Op.INTERSECT);
         canvas.drawBitmap(bitmap, 0, 0, null);
         canvas.rotate(mDegrees, mBezierStart1.x, mBezierStart1.y);
         mBackShadowDrawable.setBounds(leftx, (int) mBezierStart1.y, rightx,
@@ -638,7 +643,12 @@ public class BookPageView extends RelativeLayout {
         }
         canvas.save();
         canvas.clipPath(mCurrentPagePath);
-        canvas.clipPath(mNextPagePath, Region.Op.INTERSECT);
+        if(Build.VERSION.SDK_INT >= 28){
+            canvas.clipPath(mNextPagePath);
+        }else {
+            canvas.clipPath(mNextPagePath, Region.Op.INTERSECT);
+        }
+//        canvas.clipPath(mNextPagePath, Region.Op.INTERSECT);
 
         mPaint.setColorFilter(mColorMatrixFilter);
 
